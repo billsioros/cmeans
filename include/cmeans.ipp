@@ -83,16 +83,11 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
 
     auto assign = [&assignedTo](const T * request, Cluster<T>& cluster)
     {
-        Cluster<T> * owner = assignedTo[request];
-        if (owner == &cluster)
-            return false;
-
-        if (owner)
+        Cluster<T> * owner;
+        if (owner = assignedTo[request])
             owner->_elements.erase(request);
 
-        cluster._elements.insert(request); assignedTo[request] = &cluster;
-
-        return true;
+        (assignedTo[request] = &cluster)->_elements.insert(request);
     };
 
     bool converged = false;
@@ -108,7 +103,8 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                 clusters->size(),
                 [&](const Cluster<T> * A, const Cluster<T> * B)
                 {
-                    return cost(A->_centroid, request) < cost(B->_centroid, request);
+                    return cost(A->_centroid, request) <
+                           cost(B->_centroid, request);
                 }
             );
 
@@ -119,7 +115,10 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
             while (candidates.pop(nearest))
             {
                 if (nearest->_elements.size() >= capacity)
-                    continue;
+                    if (assignedTo[&request] == nearest)
+                        break;
+                    else
+                        continue;
 
                 // Group all unassigned requesters as G with m
                 // as their nearest centroid
@@ -133,20 +132,10 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                     double pb = std::numeric_limits<double>().max();
                     
                     if (!A.second)
-                    {
-                        const double _cost   = cost(*(A.first), nearest->_centroid);
-                        const double _demand = demand(*(A.first));
-
-                        pa = _cost / _demand;
-                    }
+                        pa = cost(*(A.first), nearest->_centroid) / demand(*(A.first));
 
                     if (!B.second)
-                    {
-                        const double _cost   = cost(*(B.first), nearest->_centroid);
-                        const double _demand = demand(*(B.first));
-
-                        pb = _cost / _demand;
-                    }
+                        pb = cost(*(B.first), nearest->_centroid) / demand(*(B.first));
 
                     return pa < pb;
                 };
@@ -154,9 +143,13 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                 // Assign r i ∈ G to their nearest centroid based
                 // on the priority value without violating the constraint
                 // Update xij
-                auto urgent = std::min_element(assignedTo.begin(), assignedTo.end(), priority);
+                auto urgent = std::min_element(
+                    assignedTo.begin(),
+                    assignedTo.end(),
+                    priority
+                );
 
-                converged &= !assign(urgent->first, *nearest); break;
+                assign(urgent->first, *nearest); converged = false; break;
 
                 // if r i is not assigned then
                 // choose the next nearest centroid
@@ -171,11 +164,12 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                 cluster._elements.begin(),
                 cluster._elements.end(),
                 T(),
-                [&cluster](const T& currentCentroid, const T * B)
+                [](const T& currentCentroid, const T * B)
                 {
-                    return (currentCentroid + (*B / static_cast<double>(cluster._elements.size())));
+                    return currentCentroid + *B;
                 }
-            );
+            )
+            / static_cast<double>(cluster._elements.size());
         }
     }
 
