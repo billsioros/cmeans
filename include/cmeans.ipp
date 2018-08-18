@@ -115,11 +115,11 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
             Cluster<T> * nearest;
             while (candidates.pop(nearest))
             {
+                if (assignedTo[&request] == nearest)
+                    break;
+
                 if (nearest->_elements.size() >= capacity)
-                    if (assignedTo[&request] == nearest)
-                        break;
-                    else
-                        continue;
+                    continue;
 
                 // Group all unassigned requesters as G with m
                 // as their nearest centroid
