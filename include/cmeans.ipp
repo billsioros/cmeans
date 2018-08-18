@@ -81,13 +81,15 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
     for (const auto& request : requests)
         assignedTo[&request] = nullptr;
 
-    auto assign = [&assignedTo](const T * request, Cluster<T>& cluster)
+    auto assign = [&assignedTo](
+        typename std::unordered_map<const T *, Cluster<T> *>::iterator urgent,
+        Cluster<T> * cluster
+    )
     {
-        Cluster<T> * owner;
-        if (owner = assignedTo[request])
-            owner->_elements.erase(request);
+        if (urgent->second)
+            urgent->second->_elements.erase(urgent->first);
 
-        (assignedTo[request] = &cluster)->_elements.insert(request);
+        (assignedTo[urgent->first] = cluster)->_elements.insert(urgent->first);
     };
 
     bool converged = false;
@@ -103,8 +105,7 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                 clusters->size(),
                 [&](const Cluster<T> * A, const Cluster<T> * B)
                 {
-                    return cost(A->_centroid, request) <
-                           cost(B->_centroid, request);
+                    return cost(A->_centroid, request) < cost(B->_centroid, request);
                 }
             );
 
@@ -143,17 +144,15 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                 // Assign r i ∈ G to their nearest centroid based
                 // on the priority value without violating the constraint
                 // Update xij
-                auto urgent = std::min_element(
-                    assignedTo.begin(),
-                    assignedTo.end(),
-                    priority
+                assign(
+                    std::min_element(assignedTo.begin(), assignedTo.end(), priority),
+                    nearest
                 );
-
-                assign(urgent->first, *nearest); converged = false; break;
 
                 // if r i is not assigned then
                 // choose the next nearest centroid
                 // end if
+                converged = false; break;
             }
         }
 
