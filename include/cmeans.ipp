@@ -22,6 +22,9 @@ template <typename T>
 using Owners = std::unordered_map<const T *, Cluster<T> *>;
 
 template <typename T>
+using Owner  = std::pair<const T *, Cluster<T> *>;
+
+template <typename T>
 inline Cluster<T>::Cluster(const T& _centroid)
 :
 _centroid(_centroid)
@@ -56,6 +59,11 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
     const std::function<std::size_t(const T&)>& demand
 )
 {
+    auto priority = [&cost, &demand](const T& request, const Cluster<T>& cluster)
+    {
+        return demand(request) / cost(request, cluster._centroid);
+    };
+
     // Calculate k
     const std::size_t k = static_cast<std::size_t>(
         std::ceil(
@@ -121,28 +129,27 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                 // Group all unassigned requesters as G with m
                 // as their nearest centroid
                 // Calculate the priority value for r i ∈ G
-                auto priority = [&](
-                    const std::pair<const T *, Cluster<T> *>& A,
-                    const std::pair<const T *, Cluster<T> *>& B
-                )
-                {
-                    double pa = std::numeric_limits<double>().max();
-                    double pb = std::numeric_limits<double>().max();
-                    
-                    if (!A.second)
-                        pa = cost(*(A.first), nearest->_centroid) / demand(*(A.first));
-
-                    if (!B.second)
-                        pb = cost(*(B.first), nearest->_centroid) / demand(*(B.first));
-
-                    return pa < pb;
-                };
-
                 // Assign r i ∈ G to their nearest centroid based
                 // on the priority value without violating the constraint
                 // Update xij
 
-                auto urgent = std::min_element(owners.begin(), owners.end(), priority);
+                auto urgent = std::min_element(
+                    owners.begin(),
+                    owners.end(),
+                    [&priority, &nearest](const Owner<T>& A, const Owner<T>& B)
+                    {
+                        const double pa = A.second
+                                        ? std::numeric_limits<double>().max()
+                                        : priority(*(A.first), nearest->_centroid);
+
+                        const double pb = B.second
+                                        ? std::numeric_limits<double>().max()
+                                        : priority(*(B.first), nearest->_centroid);
+
+                        return pa > pb;
+                    }
+                );
+
                 if (owners[urgent->first] != nearest && nearest->_elements.size() < capacity)
                 {
                     // DEBUG
@@ -173,12 +180,11 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                 cluster._elements.begin(),
                 cluster._elements.end(),
                 T(),
-                [](const T& currentCentroid, const T * B)
+                [&cluster](const T& currentCentroid, const T * B)
                 {
-                    return currentCentroid + *B;
+                    return currentCentroid + (*B / static_cast<double>(cluster._elements.size()));
                 }
-            )
-            / static_cast<double>(cluster._elements.size());
+            );
         }
     }
 

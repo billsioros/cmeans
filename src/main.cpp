@@ -1,6 +1,7 @@
 
 #include "cmeans.hpp"
 #include "vector2.hpp"
+#include <sstream>
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
@@ -8,16 +9,8 @@
 #include <cstdio>
 #include <string>
 
-#define SAFE_SSCANF(src, frmt, dst)                         \
-do                                                          \
-{                                                           \
-    if (std::sscanf(src, frmt, dst) == EOF)                 \
-    {                                                       \
-        std::cerr << "<ERR>: Malformed input" << std::endl; \
-        return EXIT_FAILURE;                                \
-    }                                                       \
-                                                            \
-} while (0);                                                \
+template <typename T>
+T str2num(const char *);
 
 int main(int argc, char * argv[])
 {
@@ -26,13 +19,13 @@ int main(int argc, char * argv[])
 
     if (argc >= 5)
     {
-        SAFE_SSCANF(argv[1], "%lu", &NUMBER_OF_POINTS);
-        SAFE_SSCANF(argv[2], "%lu", &CAPACITY);
+        NUMBER_OF_POINTS = str2num<std::size_t>(argv[1]);
+        CAPACITY = str2num<std::size_t>(argv[2]);
 
         SEED = static_cast<unsigned>(std::time(nullptr));
 
-        SAFE_SSCANF(argv[3], "%lf",  &MIN);
-        SAFE_SSCANF(argv[4], "%lf",  &MAX);
+        MIN = str2num<double>(argv[3]);
+        MAX = str2num<double>(argv[4]);
     }
 
     auto frand = [](double min, double max)
@@ -78,4 +71,21 @@ int main(int argc, char * argv[])
     delete clusters;
 
     return 0;
+}
+
+template <typename T>
+T str2num(const char * str)
+{
+    std::stringstream ss(str);
+
+    T num;
+    if (ss >> num)
+    {
+        return num;
+    }
+    else
+    {
+        std::cerr << "<ERR>: Malformed arguement (" << str << ")" << std::endl;
+        std::exit(EXIT_FAILURE);                                
+    }
 }
