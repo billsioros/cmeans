@@ -64,6 +64,14 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
         return demand(request) / cost(request, cluster._centroid);
     };
 
+    auto assign = [](const T * request, Cluster<T> * src, Cluster<T> * dst)
+    {
+        if (src)
+            src->_elements.erase(request);
+
+        dst->_elements.insert(request);
+    };
+
     // Calculate k
     const std::size_t k = static_cast<std::size_t>(
         std::ceil(
@@ -87,89 +95,69 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
     for (std::size_t i = 0; i < k; i++)
         clusters->emplace_back(requests[i]);
 
-    // Initialize the binary matrix with zeros
-    Owners<T> owners;
-    for (const auto& request : requests)
-        owners[&request] = nullptr;
-
-    auto assign = [&owners](
-        typename Owners<T>::iterator urgent,
-        Cluster<T> * cluster
-    )
-    {
-        if (urgent->second)
-            urgent->second->_elements.erase(urgent->first);
-
-        (owners[urgent->first] = cluster)->_elements.insert(urgent->first);
-    };
-
     bool converged = false;
     while (!converged)
     {
         converged = true;
 
+        // Initialize the binary matrix with zeros
+        Owners<T> owners;
+        for (const auto& request : requests)
+            owners[&request] = nullptr;
+
         for (const auto& request : requests)
         {
             // Calculate the "cost" to each
             // of the k clusters and arrange it in sorted order
-            heap<Cluster<T> *> candidates(
-                clusters->size(),
-                [&](const Cluster<T> * A, const Cluster<T> * B)
+            std::sort(
+                clusters->begin(),
+                clusters->end(),
+                [&cost, &request](const Cluster<T>& A, const Cluster<T>& B)
                 {
-                    return cost(A->_centroid, request) < cost(B->_centroid, request);
+                    return cost(A._centroid, request) < cost(B._centroid, request);
                 }
             );
 
             for (auto& cluster : *clusters)
-                candidates.push(&cluster);
-
-            Cluster<T> * nearest;
-            while (candidates.pop(nearest))
             {
                 // Group all unassigned requesters as G with m
                 // as their nearest centroid
                 // Calculate the priority value for r i ∈ G
-                // Assign r i ∈ G to their nearest centroid based
-                // on the priority value without violating the constraint
-                // Update xij
-
-                auto urgent = std::min_element(
+                typename Owners<T>::iterator urgent = std::min_element(
                     owners.begin(),
                     owners.end(),
-                    [&priority, &nearest](const Owner<T>& A, const Owner<T>& B)
+                    [&priority, &cluster](const Owner<T>& A, const Owner<T>& B)
                     {
                         const double pa = A.second
                                         ? std::numeric_limits<double>().max()
-                                        : priority(*(A.first), nearest->_centroid);
+                                        : priority(*(A.first), cluster._centroid);
 
                         const double pb = B.second
                                         ? std::numeric_limits<double>().max()
-                                        : priority(*(B.first), nearest->_centroid);
+                                        : priority(*(B.first), cluster._centroid);
 
                         return pa > pb;
                     }
                 );
 
-                if (owners[urgent->first] != nearest && nearest->_elements.size() < capacity)
-                {
-                    // DEBUG
-                    double prev;
-                    if (urgent->second)
-                        prev = cost(urgent->second->_centroid, *urgent->first);
-                    else
-                        prev = std::numeric_limits<double>().max();
+                // Assign r i ∈ G to their nearest centroid based
+                // on the priority value without violating the constraint
+                // Update xij
+                if (cluster._elements.find(urgent->first) != cluster._elements.end())
+                    break;
 
-                    double curr = cost(nearest->_centroid, *urgent->first);
-                    // DEBUG
+                if (cluster._elements.size() < capacity)
+                {
+                    assign(urgent->first, urgent->second, owners[urgent->first] = &cluster);
                     
-                    assign(urgent,nearest);
-                    
-                    converged = false; break;
+                    converged = false;
                 }
                
-                // if r i is not assigned then
+                // if r i is not unassigned then
                 // choose the next nearest centroid
                 // end if
+                if (owners[&request])
+                    break;
             }
         }
 
