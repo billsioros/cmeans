@@ -19,6 +19,9 @@
 // P.T.VANATHI
 
 template <typename T>
+using Owners = std::unordered_map<const T *, Cluster<T> *>;
+
+template <typename T>
 inline Cluster<T>::Cluster(const T& _centroid)
 :
 _centroid(_centroid)
@@ -77,19 +80,19 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
         clusters->emplace_back(requests[i]);
 
     // Initialize the binary matrix with zeros
-    std::unordered_map<const T *, Cluster<T> *> assignedTo;
+    Owners<T> owners;
     for (const auto& request : requests)
-        assignedTo[&request] = nullptr;
+        owners[&request] = nullptr;
 
-    auto assign = [&assignedTo](
-        typename std::unordered_map<const T *, Cluster<T> *>::iterator urgent,
+    auto assign = [&owners](
+        typename Owners<T>::iterator urgent,
         Cluster<T> * cluster
     )
     {
         if (urgent->second)
             urgent->second->_elements.erase(urgent->first);
 
-        (assignedTo[urgent->first] = cluster)->_elements.insert(urgent->first);
+        (owners[urgent->first] = cluster)->_elements.insert(urgent->first);
     };
 
     bool converged = false;
@@ -115,12 +118,6 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
             Cluster<T> * nearest;
             while (candidates.pop(nearest))
             {
-                if (assignedTo[&request] == nearest)
-                    break;
-
-                if (nearest->_elements.size() >= capacity)
-                    continue;
-
                 // Group all unassigned requesters as G with m
                 // as their nearest centroid
                 // Calculate the priority value for r i ∈ G
@@ -144,15 +141,28 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                 // Assign r i ∈ G to their nearest centroid based
                 // on the priority value without violating the constraint
                 // Update xij
-                assign(
-                    std::min_element(assignedTo.begin(), assignedTo.end(), priority),
-                    nearest
-                );
 
+                auto urgent = std::min_element(owners.begin(), owners.end(), priority);
+                if (owners[urgent->first] != nearest && nearest->_elements.size() < capacity)
+                {
+                    // DEBUG
+                    double prev;
+                    if (urgent->second)
+                        prev = cost(urgent->second->_centroid, *urgent->first);
+                    else
+                        prev = std::numeric_limits<double>().max();
+
+                    double curr = cost(nearest->_centroid, *urgent->first);
+                    // DEBUG
+                    
+                    assign(urgent,nearest);
+                    
+                    converged = false; break;
+                }
+               
                 // if r i is not assigned then
                 // choose the next nearest centroid
                 // end if
-                converged = false; break;
             }
         }
 

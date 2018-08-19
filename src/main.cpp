@@ -5,15 +5,36 @@
 #include <cstdlib>
 #include <ctime>
 #include <vector>
+#include <cstdio>
+#include <string>
 
-#define NUMBER_OF_POINTS (50UL)
-#define MIN (-0.0)
-#define MAX (+50.0)
-#define CAPACITY (7UL)
-#define SEED (123456789UL)
+#define SAFE_SSCANF(src, frmt, dst)                         \
+do                                                          \
+{                                                           \
+    if (std::sscanf(src, frmt, dst) == EOF)                 \
+    {                                                       \
+        std::cerr << "<ERR>: Malformed input" << std::endl; \
+        return EXIT_FAILURE;                                \
+    }                                                       \
+                                                            \
+} while (0);                                                \
 
-int main()
+int main(int argc, char * argv[])
 {
+    std::size_t NUMBER_OF_POINTS = 10UL, CAPACITY = 3UL, SEED = 123456789UL;
+    double MIN = 0.0, MAX = 50.0;
+
+    if (argc >= 5)
+    {
+        SAFE_SSCANF(argv[1], "%lu", &NUMBER_OF_POINTS);
+        SAFE_SSCANF(argv[2], "%lu", &CAPACITY);
+
+        SEED = static_cast<unsigned>(std::time(nullptr));
+
+        SAFE_SSCANF(argv[3], "%lf",  &MIN);
+        SAFE_SSCANF(argv[4], "%lf",  &MAX);
+    }
+
     auto frand = [](double min, double max)
     {
         const double fraction = static_cast<double>(std::rand())
@@ -22,11 +43,7 @@ int main()
         return min + fraction * (max - min);
     };
 
-    #ifndef SEED
-    std::srand(static_cast<unsigned>(std::time(nullptr)));
-    #else
     std::srand(SEED);
-    #endif
 
     std::vector<Vector2> points;
     for (std::size_t count = 0UL; count < NUMBER_OF_POINTS; count++)
@@ -47,10 +64,15 @@ int main()
 
     for (const auto& cluster : *clusters)
     {
-        for (const auto& element : cluster.elements())
-            std::cout << *element << " ";
+        std::string xs, ys;
 
-        std::cout << std::endl;
+        for (const auto& element : cluster.elements())
+        {
+            xs += std::to_string(element->x()) + " ";
+            ys += std::to_string(element->y()) + " ";
+        }
+
+        std::cout << xs << std::endl << ys << std::endl;
     }
 
     delete clusters;
