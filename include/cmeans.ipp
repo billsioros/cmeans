@@ -1,16 +1,13 @@
 
 #pragma once
 
-#include "heap.hpp"
-#include <algorithm>        // std::min_element
+#include <algorithm>        // std::min_element, std::sort
 #include <limits>           // std::numeric_limits
 #include <numeric>          // std::accumulate
 #include <unordered_set>    // std::unordered_set
-#include <unordered_map>    // std::unordered_map
 #include <vector>           // std::vector
 #include <functional>       // std::function
 #include <cmath>            // std::ceil
-#include <utility>          // std::pair
 
 // Acknowledgements:
 // Improved K-Means Algorithm for Capacitated Clustering Problem by

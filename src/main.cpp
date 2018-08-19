@@ -6,7 +6,6 @@
 #include <cstdlib>
 #include <ctime>
 #include <vector>
-#include <cstdio>
 #include <string>
 
 template <typename T>
