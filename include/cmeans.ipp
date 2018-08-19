@@ -53,11 +53,6 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
     const std::function<std::size_t(const T&)>& demand
 )
 {
-    auto priority = [&cost, &demand](const T& request, const Cluster<T>& cluster)
-    {
-        return demand(request) / cost(request, cluster._centroid);
-    };
-
     // Calculate k
     const std::size_t k = static_cast<std::size_t>(
         std::ceil(
@@ -81,27 +76,15 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
     for (std::size_t i = 0; i < k; i++)
         clusters->emplace_back(requests[i]);
 
-    auto assign = [&clusters](const T * request, Cluster<T> * dst)
-    {
-        for (auto& cluster : *clusters)
-        {
-            typename Set<T>::iterator it;
-            if ((it = cluster._elements.find(request)) != cluster._elements.end())
-                cluster._elements.erase(it);
-        }
-
-        dst->_elements.insert(request);
-    };
+    // Initialize the binary matrix with zeros
+    Set<T> unassigned;
+    for (const auto& request : requests)
+        unassigned.insert(&request);
 
     bool converged = false;
     while (!converged)
     {
         converged = true;
-
-        // Initialize the binary matrix with zeros
-        Set<T> unassigned;
-        for (const auto& request : requests)
-            unassigned.insert(&request);
 
         for (const auto& request : requests)
         {
@@ -118,45 +101,36 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
 
             for (auto& cluster : *clusters)
             {
+                // if r i is not unassigned then
+                // choose the next nearest centroid
+                // end if
+                if (unassigned.find(&request) == unassigned.end())
+                    break;
+
+                if (cluster._elements.size() >= capacity)
+                    continue;
+
                 // Group all unassigned requesters as G with m
                 // as their nearest centroid
                 // Calculate the priority value for r i ∈ G
-                typename Set<T>::iterator urgent = std::max_element(
+                typename Set<T>::iterator urgent = std::min_element(
                     unassigned.begin(),
                     unassigned.end(),
-                    [&priority, &cluster](const T * A, const T * B)
+                    [&](const T * A, const T * B)
                     {
-                        const double pa = priority(*A, cluster._centroid);
-                        const double pb = priority(*B, cluster._centroid);
+                        const double pa = cost(*A, cluster._centroid) / demand(*A);
+                        const double pb = cost(*B, cluster._centroid) / demand(*B);
 
-                        return pa > pb;
+                        return pa < pb;
                     }
                 );
 
                 // Assign r i ∈ G to their nearest centroid based
                 // on the priority value without violating the constraint
                 // Update xij
-                if (cluster._elements.find(*urgent) != cluster._elements.end())
-                {
-                    unassigned.erase(*urgent);
-                }
-                else
-                {
-                    if (cluster._elements.size() < capacity)
-                    {
-                        unassigned.erase(*urgent);
+                unassigned.erase(*urgent);
 
-                        assign(*urgent, &cluster);
-                        
-                        converged = false;
-                    }
-                }
-                
-                // if r i is not unassigned then
-                // choose the next nearest centroid
-                // end if
-                if (unassigned.find(&request) == unassigned.end())
-                    break;
+                cluster._elements.insert(*urgent); converged = false;
             }
         }
 
