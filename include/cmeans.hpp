@@ -6,11 +6,14 @@
 #include <functional>       // std::function
 
 template <typename T>
+using Set = std::unordered_set<const T *>;
+
+template <typename T>
 class Cluster
 {
     T _centroid;
     
-    std::unordered_set<const T *> _elements;
+    Set<T> _elements;
 
 public:
 
@@ -18,7 +21,7 @@ public:
     Cluster(const Cluster&);
 
     const T& centroid() const;
-    const std::unordered_set<const T *>& elements() const;
+    const Set<T>& elements() const;
 
     static const std::vector<Cluster<T>> * cmeans
     (

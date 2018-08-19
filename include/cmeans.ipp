@@ -19,12 +19,6 @@
 // P.T.VANATHI
 
 template <typename T>
-using Owners = std::unordered_map<const T *, Cluster<T> *>;
-
-template <typename T>
-using Owner  = std::pair<const T *, Cluster<T> *>;
-
-template <typename T>
 inline Cluster<T>::Cluster(const T& _centroid)
 :
 _centroid(_centroid)
@@ -45,7 +39,7 @@ inline const T& Cluster<T>::centroid() const
 }
 
 template <typename T>
-inline const std::unordered_set<const T *>& Cluster<T>::elements() const
+inline const Set<T>& Cluster<T>::elements() const
 {
     return _elements;
 }
@@ -62,14 +56,6 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
     auto priority = [&cost, &demand](const T& request, const Cluster<T>& cluster)
     {
         return demand(request) / cost(request, cluster._centroid);
-    };
-
-    auto assign = [](const T * request, Cluster<T> * src, Cluster<T> * dst)
-    {
-        if (src)
-            src->_elements.erase(request);
-
-        dst->_elements.insert(request);
     };
 
     // Calculate k
@@ -95,15 +81,27 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
     for (std::size_t i = 0; i < k; i++)
         clusters->emplace_back(requests[i]);
 
+    auto assign = [&clusters](const T * request, Cluster<T> * dst)
+    {
+        for (auto& cluster : *clusters)
+        {
+            typename Set<T>::iterator it;
+            if ((it = cluster._elements.find(request)) != cluster._elements.end())
+                cluster._elements.erase(it);
+        }
+
+        dst->_elements.insert(request);
+    };
+
     bool converged = false;
     while (!converged)
     {
         converged = true;
 
         // Initialize the binary matrix with zeros
-        Owners<T> owners;
+        Set<T> unassigned;
         for (const auto& request : requests)
-            owners[&request] = nullptr;
+            unassigned.insert(&request);
 
         for (const auto& request : requests)
         {
@@ -123,18 +121,13 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                 // Group all unassigned requesters as G with m
                 // as their nearest centroid
                 // Calculate the priority value for r i ∈ G
-                typename Owners<T>::iterator urgent = std::min_element(
-                    owners.begin(),
-                    owners.end(),
-                    [&priority, &cluster](const Owner<T>& A, const Owner<T>& B)
+                typename Set<T>::iterator urgent = std::max_element(
+                    unassigned.begin(),
+                    unassigned.end(),
+                    [&priority, &cluster](const T * A, const T * B)
                     {
-                        const double pa = A.second
-                                        ? std::numeric_limits<double>().max()
-                                        : priority(*(A.first), cluster._centroid);
-
-                        const double pb = B.second
-                                        ? std::numeric_limits<double>().max()
-                                        : priority(*(B.first), cluster._centroid);
+                        const double pa = priority(*A, cluster._centroid);
+                        const double pb = priority(*B, cluster._centroid);
 
                         return pa > pb;
                     }
@@ -143,20 +136,26 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                 // Assign r i ∈ G to their nearest centroid based
                 // on the priority value without violating the constraint
                 // Update xij
-                if (cluster._elements.find(urgent->first) != cluster._elements.end())
-                    break;
-
-                if (cluster._elements.size() < capacity)
+                if (cluster._elements.find(*urgent) != cluster._elements.end())
                 {
-                    assign(urgent->first, urgent->second, owners[urgent->first] = &cluster);
-                    
-                    converged = false;
+                    unassigned.erase(*urgent);
                 }
-               
+                else
+                {
+                    if (cluster._elements.size() < capacity)
+                    {
+                        unassigned.erase(*urgent);
+
+                        assign(*urgent, &cluster);
+                        
+                        converged = false;
+                    }
+                }
+                
                 // if r i is not unassigned then
                 // choose the next nearest centroid
                 // end if
-                if (owners[&request])
+                if (unassigned.find(&request) == unassigned.end())
                     break;
             }
         }

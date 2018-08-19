@@ -14,7 +14,7 @@ T str2num(const char *);
 
 int main(int argc, char * argv[])
 {
-    std::size_t NUMBER_OF_POINTS = 10UL, CAPACITY = 3UL, SEED = 123456789UL;
+    std::size_t NUMBER_OF_POINTS = 5UL, CAPACITY = 3UL, SEED = 123456789UL;
     double MIN = 0.0, MAX = 50.0;
 
     if (argc >= 5)
