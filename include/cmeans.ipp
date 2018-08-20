@@ -1,7 +1,8 @@
 
 #pragma once
 
-#include <algorithm>        // std::min_element, std::sort
+#include "heap.hpp"
+#include <algorithm>        // std::min_element
 #include <limits>           // std::numeric_limits
 #include <numeric>          // std::accumulate
 #include <unordered_set>    // std::unordered_set
@@ -103,16 +104,19 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
         {
             // Calculate the "cost" to each
             // of the k clusters and arrange it in sorted order
-            std::sort(
-                clusters->begin(),
-                clusters->end(),
-                [&cost, &request](const Cluster<T>& A, const Cluster<T>& B)
+            heap<Cluster<T> *> candidates(
+                clusters->size(),
+                [&cost, &request](Cluster<T> * A, Cluster<T> * B)
                 {
-                    return cost(A._centroid, request) < cost(B._centroid, request);
+                    return cost(A->_centroid, request) < cost(B->_centroid, request);
                 }
             );
 
             for (auto& cluster : *clusters)
+                candidates.push(&cluster);
+
+            Cluster<T> * cluster;
+            while (candidates.pop(cluster))
             {
                 // if r i is not unassigned then
                 // choose the next nearest centroid
@@ -128,8 +132,8 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                     unassigned.end(),
                     [&](const T * A, const T * B)
                     {
-                        const double pa = cost(*A, cluster._centroid) / demand(*A);
-                        const double pb = cost(*B, cluster._centroid) / demand(*B);
+                        const double pa = cost(*A, cluster->_centroid) / demand(*A);
+                        const double pb = cost(*B, cluster->_centroid) / demand(*B);
 
                         return pa < pb;
                     }
@@ -139,16 +143,16 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                 // on the priority value without violating the constraint
                 // Update xij
 
-                if (cluster._elements.find(*urgent) != cluster._elements.end())
+                if (cluster->_elements.find(*urgent) != cluster->_elements.end())
                 {
                     unassigned.erase(*urgent);
                 }
                 else
                 {
-                    if (cluster._elements.size() >= capacity)
+                    if (cluster->_elements.size() >= capacity)
                         continue;
 
-                    converged = false; assign(*urgent, cluster);
+                    converged = false; assign(*urgent, *cluster);
                 }
             }
         }
