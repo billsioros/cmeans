@@ -13,7 +13,7 @@ T str2num(const char *);
 
 int main(int argc, char * argv[])
 {
-    std::size_t NUMBER_OF_POINTS = 5UL, CAPACITY = 3UL, SEED = 123456789UL;
+    std::size_t NUMBER_OF_POINTS = 10UL, CAPACITY = 7UL, SEED = 1534767443UL;
     double MIN = 0.0, MAX = 50.0;
 
     if (argc >= 5)
@@ -21,7 +21,9 @@ int main(int argc, char * argv[])
         NUMBER_OF_POINTS = str2num<std::size_t>(argv[1]);
         CAPACITY = str2num<std::size_t>(argv[2]);
 
+        #ifdef __RANDOM__
         SEED = static_cast<unsigned>(std::time(nullptr));
+        #endif
 
         MIN = str2num<double>(argv[3]);
         MAX = str2num<double>(argv[4]);
