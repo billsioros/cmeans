@@ -73,15 +73,31 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
     for (std::size_t i = 0; i < k; i++)
         clusters->emplace_back(requests[i]);
 
-    // Initialize the binary matrix with zeros
-    Set<T> unassigned;
-    for (const auto& request : requests)
-        unassigned.insert(&request);
-
-    bool converged = false;
+    Set<T> unassigned; bool converged = false;
     while (!converged)
     {
         converged = true;
+
+        // Initialize the binary matrix with zeros
+        if (unassigned.empty())
+            for (const auto& request : requests)
+                unassigned.insert(&request);
+
+        auto assign = [&](const T * request, Cluster<T>& cluster)
+        {
+            unassigned.erase(request);
+
+            for (auto& other : *clusters)
+            {
+                typename Set<T>::iterator it;
+                if ((it = other._elements.find(request)) != other._elements.end())
+                {                    
+                    other._elements.erase(it); break;
+                }
+            }
+
+            cluster._elements.insert(request);
+        };
 
         for (const auto& request : requests)
         {
@@ -104,9 +120,6 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                 if (unassigned.find(&request) == unassigned.end())
                     break;
 
-                if (cluster._elements.size() >= capacity)
-                    continue;
-
                 // Group all unassigned requesters as G with m
                 // as their nearest centroid
                 // Calculate the priority value for r i ∈ G
@@ -125,9 +138,18 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                 // Assign r i ∈ G to their nearest centroid based
                 // on the priority value without violating the constraint
                 // Update xij
-                unassigned.erase(*urgent);
 
-                cluster._elements.insert(*urgent); converged = false;
+                if (cluster._elements.find(*urgent) != cluster._elements.end())
+                {
+                    unassigned.erase(*urgent);
+                }
+                else
+                {
+                    if (cluster._elements.size() >= capacity)
+                        continue;
+
+                    converged = false; assign(*urgent, cluster);
+                }
             }
         }
 
