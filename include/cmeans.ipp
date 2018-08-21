@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include "heap.hpp"
 #include <algorithm>        // std::min_element
 #include <limits>           // std::numeric_limits
 #include <numeric>          // std::accumulate
