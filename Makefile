@@ -14,14 +14,24 @@ test:
 	make all DEFLAGS="-D __RANDOM__"
 	./bin/cmeans 20 6 0 50 > ./test/tiny.dat
 	./bin/cmeans 50 13 0 50 > ./test/small.dat
-	./bin/cmeans 130 21 0 50 > ./test/big.dat
-	./bin/cmeans 250 27 0 50 > ./test/large.dat
-	./bin/cmeans 500 49 0 50 > ./test/huge.dat
+	./bin/cmeans 130 27 0 50 > ./test/medium.dat
+	./bin/cmeans 250 53 0 50 > ./test/large.dat
+	./bin/cmeans 500 109 0 50 > ./test/huge.dat
+
+.PHONY: debug
+debug:
+	make all DEFLAGS="-D __DEBUG__"
 
 .PHONY: clean
 clean:
 	@echo "\n*** Purging cmeans ***"
 	@echo "***"
-	find . -name "*.dat" -delete
 	rm -rIv $(PATH_BIN)
+	@echo "***"
+
+.PHONY: discard
+discard:
+	@echo "\n*** Removing test files ***"
+	@echo "***"
+	find . -name "*.dat" -delete
 	@echo "***"

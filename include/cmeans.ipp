@@ -10,6 +10,10 @@
 #include <functional>       // std::function
 #include <cmath>            // std::ceil
 
+#ifdef __TEST__
+#include <fstream>
+#endif
+
 // Acknowledgements:
 // Improved K-Means Algorithm for Capacitated Clustering Problem by
 // S.GEETHA
@@ -74,56 +78,46 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
     for (std::size_t i = 0; i < k; i++)
         clusters->emplace_back(requests[i]);
 
-    Set<T> unassigned; bool converged = false;
+    auto assign = [&clusters](const T * request, Cluster<T>& cluster)
+    {
+        for (auto& other : *clusters)
+        {
+            typename Set<T>::iterator it;
+            if ((it = other._elements.find(request)) != other._elements.end())
+            {                    
+                other._elements.erase(it); break;
+            }
+        }
+
+        cluster._elements.insert(request);
+    };
+
+    bool converged = false;
     while (!converged)
     {
         converged = true;
 
         // Initialize the binary matrix with zeros
-        if (unassigned.empty())
-            for (const auto& request : requests)
-                unassigned.insert(&request);
-
-        auto assign = [&](const T * request, Cluster<T>& cluster)
-        {
-            unassigned.erase(request);
-
-            for (auto& other : *clusters)
-            {
-                typename Set<T>::iterator it;
-                if ((it = other._elements.find(request)) != other._elements.end())
-                {                    
-                    other._elements.erase(it); break;
-                }
-            }
-
-            cluster._elements.insert(request);
-        };
+        Set<T> unassigned;
+        for (const auto& request : requests)
+            unassigned.insert(&request);
 
         for (const auto& request : requests)
         {
             // Calculate the "cost" to each
             // of the k clusters and arrange it in sorted order
-            heap<Cluster<T> *> candidates(
-                clusters->size(),
-                [&cost, &request](Cluster<T> * A, Cluster<T> * B)
+            std::sort(
+                clusters->begin(),
+                clusters->end(),
+                [&cost, &request](const Cluster<T>& A, const Cluster<T>& B)
                 {
-                    return cost(A->_centroid, request) < cost(B->_centroid, request);
+                    return cost(A._centroid, request) < cost(B._centroid, request);
                 }
             );
 
-            for (auto& cluster : *clusters)
-                candidates.push(&cluster);
-
-            Cluster<T> * cluster;
-            while (candidates.pop(cluster))
+            typename std::vector<Cluster<T>>::iterator cluster = clusters->begin();
+            while (unassigned.find(&request) != unassigned.end())
             {
-                // if r i is not unassigned then
-                // choose the next nearest centroid
-                // end if
-                if (unassigned.find(&request) == unassigned.end())
-                    break;
-
                 // Group all unassigned requesters as G with m
                 // as their nearest centroid
                 // Calculate the priority value for r i ∈ G
@@ -142,18 +136,25 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                 // Assign r i ∈ G to their nearest centroid based
                 // on the priority value without violating the constraint
                 // Update xij
-
                 if (cluster->_elements.find(*urgent) != cluster->_elements.end())
                 {
                     unassigned.erase(*urgent);
                 }
                 else
                 {
-                    if (cluster->_elements.size() >= capacity)
-                        continue;
+                    if (cluster->_elements.size() < capacity)
+                    {
+                        unassigned.erase(*urgent);
 
-                    converged = false; assign(*urgent, *cluster);
+                        assign(*urgent, *cluster); converged = false;
+                    }
                 }
+
+                // if r i is not unassigned then
+                // choose the next nearest centroid
+                // end if
+                if (++cluster == clusters->end())
+                    cluster = clusters->begin();
             }
         }
 
@@ -170,6 +171,28 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                 }
             );
         }
+
+        #ifdef __TEST__
+        static unsigned counter = 1UL;
+
+        if (counter < 20UL)
+        {
+            std::ofstream ofs("test" + std::to_string(counter++) + ".dat");
+            for (const auto& cluster : *clusters)
+            {
+                std::string xs, ys;
+
+                for (const auto& element : cluster.elements())
+                {
+                    xs += std::to_string(element->x()) + " ";
+                    ys += std::to_string(element->y()) + " ";
+                }
+
+                ofs << xs << std::endl << ys << std::endl;
+            }
+            ofs << std::endl;
+        }
+        #endif
     }
 
     return clusters;
