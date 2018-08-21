@@ -10,7 +10,7 @@
 #include <functional>       // std::function
 #include <cmath>            // std::ceil
 
-#ifdef __TEST__
+#ifdef __DEBUG__
 #include <fstream>
 #endif
 
@@ -84,7 +84,7 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
         {
             typename Set<T>::iterator it;
             if ((it = other._elements.find(request)) != other._elements.end())
-            {                    
+            {
                 other._elements.erase(it); break;
             }
         }
@@ -172,7 +172,7 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
             );
         }
 
-        #ifdef __TEST__
+        #ifdef __DEBUG__
         static unsigned counter = 1UL;
 
         if (counter < 20UL)
@@ -187,6 +187,9 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                     xs += std::to_string(element->x()) + " ";
                     ys += std::to_string(element->y()) + " ";
                 }
+
+                xs += std::to_string(cluster.centroid().x()) + " ";
+                ys += std::to_string(cluster.centroid().y()) + " ";
 
                 ofs << xs << std::endl << ys << std::endl;
             }
