@@ -66,6 +66,9 @@ int main(int argc, char * argv[])
             ys += std::to_string(element->y()) + " ";
         }
 
+        xs += std::to_string(cluster.centroid().x()) + " ";
+        ys += std::to_string(cluster.centroid().y()) + " ";
+
         std::cout << xs << std::endl << ys << std::endl;
     }
 
