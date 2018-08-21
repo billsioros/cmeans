@@ -5,6 +5,7 @@
 #include <algorithm>        // std::min_element
 #include <limits>           // std::numeric_limits
 #include <numeric>          // std::accumulate
+#include <unordered_map>    // std::unordered_map
 #include <unordered_set>    // std::unordered_set
 #include <vector>           // std::vector
 #include <functional>       // std::function
@@ -19,6 +20,12 @@
 // S.GEETHA
 // G.POONTHALIR
 // P.T.VANATHI
+
+template <typename T>
+using Map     = std::unordered_map<const T *, Cluster<T> *>;
+
+template <typename T>
+using Mapping = std::pair<const T *, Cluster<T> *>;
 
 template <typename T>
 inline Cluster<T>::Cluster(const T& _centroid)
@@ -92,15 +99,15 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
         cluster._elements.insert(request);
     };
 
+    // Initialize the binary matrix with zeros
+    Map<T> unassigned;
+    for (const auto& request : requests)
+        unassigned[&request] = nullptr;
+
     bool converged = false;
     while (!converged)
     {
         converged = true;
-
-        // Initialize the binary matrix with zeros
-        Set<T> unassigned;
-        for (const auto& request : requests)
-            unassigned.insert(&request);
 
         for (const auto& request : requests)
         {
@@ -115,19 +122,25 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                 }
             );
 
+            unassigned[&request] = &clusters->front();
+
             typename std::vector<Cluster<T>>::iterator cluster = clusters->begin();
             while (unassigned.find(&request) != unassigned.end())
             {
                 // Group all unassigned requesters as G with m
                 // as their nearest centroid
                 // Calculate the priority value for r i ∈ G
-                typename Set<T>::iterator urgent = std::min_element(
+                typename Map<T>::iterator urgent = std::min_element(
                     unassigned.begin(),
                     unassigned.end(),
-                    [&](const T * A, const T * B)
+                    [&](const Mapping<T>& A, const Mapping<T>& B)
                     {
-                        const double pa = cost(*A, cluster->_centroid) / demand(*A);
-                        const double pb = cost(*B, cluster->_centroid) / demand(*B);
+                        const double pa = A.second == &(*cluster)
+                                        ? cost(*A.first, cluster->_centroid) / demand(*A.first)
+                                        : std::numeric_limits<double>().max();
+                        const double pb = B.second == &(*cluster)
+                                        ? cost(*B.first, cluster->_centroid) / demand(*B.first)
+                                        : std::numeric_limits<double>().max();
 
                         return pa < pb;
                     }
@@ -136,17 +149,17 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                 // Assign r i ∈ G to their nearest centroid based
                 // on the priority value without violating the constraint
                 // Update xij
-                if (cluster->_elements.find(*urgent) != cluster->_elements.end())
+                if (cluster->_elements.find(urgent->first) != cluster->_elements.end())
                 {
-                    unassigned.erase(*urgent);
+                    unassigned.erase(urgent->first);
                 }
                 else
                 {
                     if (cluster->_elements.size() < capacity)
                     {
-                        unassigned.erase(*urgent);
+                        unassigned.erase(urgent->first);
 
-                        assign(*urgent, *cluster); converged = false;
+                        assign(urgent->first, *cluster); converged = false;
                     }
                 }
 
