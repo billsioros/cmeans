@@ -10,7 +10,7 @@
 #include <functional>       // std::function
 #include <cmath>            // std::ceil
 
-#ifdef __DEBUG__
+#ifdef __DEBUG_CMEANS__
 #include <fstream>
 #endif
 
@@ -184,7 +184,7 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
             );
         }
 
-        #ifdef __DEBUG__
+        #ifdef __DEBUG_CMEANS__
         static unsigned counter = 1UL;
 
         if (counter < 20UL)
