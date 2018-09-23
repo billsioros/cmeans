@@ -9,6 +9,7 @@
 #include <vector>           // std::vector
 #include <functional>       // std::function
 #include <cmath>            // std::ceil
+#include <utility>          // std::move
 
 #ifdef __DEBUG_CMEANS__
 #include <fstream>
@@ -41,19 +42,44 @@ _centroid(other._centroid), _elements(other._elements)
 }
 
 template <typename T>
+inline Cluster<T>::Cluster(const Cluster&& other)
+:
+_centroid(std::move(other._centroid)), _elements(other._elements)
+{
+}
+
+template <typename T>
+inline Cluster<T>& Cluster<T>::operator=(const Cluster& other)
+{
+    _centroid = other._centroid;
+    _elements = other._elements;
+
+    return *this;
+}
+
+template <typename T>
+inline Cluster<T>& Cluster<T>::operator=(const Cluster&& other)
+{
+    _centroid = std::move(other._centroid);
+    _elements = std::move(other._elements);
+
+    return *this;
+}
+
+template <typename T>
 inline const T& Cluster<T>::centroid() const
 {
     return _centroid;
 }
 
 template <typename T>
-inline const Set<T>& Cluster<T>::elements() const
+inline const std::unordered_set<const T *>& Cluster<T>::elements() const
 {
     return _elements;
 }
 
 template <typename T>
-const std::vector<Cluster<T>> * Cluster<T>::cmeans
+std::vector<Cluster<T>> Cluster<T>::cmeans
 (
     const std::vector<T>& requests,
     std::size_t capacity,
@@ -80,15 +106,15 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
     );
 
     // Select k first centroids
-    std::vector<Cluster<T>> * clusters = new std::vector<Cluster<T>>;
+    std::vector<Cluster<T>> clusters;
     for (std::size_t i = 0; i < k; i++)
-        clusters->emplace_back(requests[i]);
+        clusters.emplace_back(requests[i]);
 
     auto assign = [&clusters](const T * request, Cluster<T>& cluster)
     {
-        for (auto& other : *clusters)
+        for (auto& other : clusters)
         {
-            typename Set<T>::iterator it;
+            typename std::unordered_set<const T *>::iterator it;
             if ((it = other._elements.find(request)) != other._elements.end())
             {
                 other._elements.erase(it); break;
@@ -113,17 +139,17 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
             // Calculate the "cost" to each
             // of the k clusters and arrange it in sorted order
             std::sort(
-                clusters->begin(),
-                clusters->end(),
+                clusters.begin(),
+                clusters.end(),
                 [&cost, &request](const Cluster<T>& A, const Cluster<T>& B)
                 {
                     return cost(A._centroid, request) < cost(B._centroid, request);
                 }
             );
 
-            unassigned[&request] = &clusters->front();
+            unassigned[&request] = &clusters.front();
 
-            typename std::vector<Cluster<T>>::iterator cluster = clusters->begin();
+            typename std::vector<Cluster<T>>::iterator cluster = clusters.begin();
             while (unassigned.find(&request) != unassigned.end())
             {
                 // Group all unassigned requesters as G with m
@@ -165,13 +191,13 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
                 // if r i is not unassigned then
                 // choose the next nearest centroid
                 // end if
-                if (++cluster == clusters->end())
-                    cluster = clusters->begin();
+                if (++cluster == clusters.end())
+                    cluster = clusters.begin();
             }
         }
 
         // Calculate the new centroid from the formed clusters
-        for (auto& cluster : *clusters)
+        for (auto& cluster : clusters)
         {
             cluster._centroid = std::accumulate(
                 cluster._elements.begin(),
@@ -190,7 +216,7 @@ const std::vector<Cluster<T>> * Cluster<T>::cmeans
         if (counter < 20UL)
         {
             std::ofstream ofs("test" + std::to_string(counter++) + ".dat");
-            for (const auto& cluster : *clusters)
+            for (const auto& cluster : clusters)
             {
                 std::string xs, ys;
 

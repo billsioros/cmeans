@@ -43,7 +43,7 @@ int main(int argc, char * argv[])
     for (std::size_t count = 0UL; count < NUMBER_OF_POINTS; count++)
         points.emplace_back(frand(MIN, MAX), frand(MIN, MAX));
 
-    const std::vector<Cluster<Vector2>> * clusters = Cluster<Vector2>::cmeans(
+    std::vector<Cluster<Vector2>> clusters = Cluster<Vector2>::cmeans(
         points,
         CAPACITY,
         [](const Vector2& A, const Vector2& B)
@@ -56,7 +56,7 @@ int main(int argc, char * argv[])
         [](const Vector2& v) { return 1UL; }
     );
 
-    for (const auto& cluster : *clusters)
+    for (const auto& cluster : clusters)
     {
         std::string xs, ys;
 
@@ -71,8 +71,6 @@ int main(int argc, char * argv[])
 
         std::cout << xs << std::endl << ys << std::endl;
     }
-
-    delete clusters;
 
     return 0;
 }
