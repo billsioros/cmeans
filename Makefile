@@ -20,7 +20,7 @@ test:
 
 .PHONY: debug
 debug:
-	make all DEFLAGS="-D __DEBUG__"
+	make all DEFLAGS="-D __DEBUG_CMEANS__"
 
 .PHONY: clean
 clean:
