@@ -182,9 +182,9 @@ std::vector<Cluster<T>> Cluster<T>::cmeans
                 {
                     if (cluster->_elements.size() < capacity)
                     {
-                        unassigned.erase(urgent->first);
-
                         assign(urgent->first, *cluster); converged = false;
+
+                        unassigned.erase(urgent->first);
                     }
                 }
 
