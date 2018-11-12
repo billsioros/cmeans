@@ -16,10 +16,10 @@ public:
 
     Cluster(const T&);
     Cluster(const Cluster&);
-    Cluster(const Cluster&&);
+    Cluster(Cluster&&) noexcept;
 
     Cluster& operator=(const Cluster&);
-    Cluster& operator=(const Cluster&&);
+    Cluster& operator=(Cluster&&) noexcept;
 
     const T& centroid() const;
     const std::unordered_set<const T *>& elements() const;

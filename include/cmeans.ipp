@@ -42,7 +42,7 @@ _centroid(other._centroid), _elements(other._elements)
 }
 
 template <typename T>
-inline Cluster<T>::Cluster(const Cluster&& other)
+inline Cluster<T>::Cluster(Cluster&& other) noexcept
 :
 _centroid(std::move(other._centroid)), _elements(other._elements)
 {
@@ -58,7 +58,7 @@ inline Cluster<T>& Cluster<T>::operator=(const Cluster& other)
 }
 
 template <typename T>
-inline Cluster<T>& Cluster<T>::operator=(const Cluster&& other)
+inline Cluster<T>& Cluster<T>::operator=(Cluster&& other) noexcept
 {
     _centroid = std::move(other._centroid);
     _elements = std::move(other._elements);
