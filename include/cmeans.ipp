@@ -180,7 +180,15 @@ std::vector<Cluster<T>> Cluster<T>::cmeans
                 }
                 else
                 {
-                    if (cluster->_elements.size() < capacity)
+                    std::size_t constraint = std::accumulate
+                    (
+                        cluster->_elements.begin(),
+                        cluster->_elements.end(),
+                        0UL,
+                        [&demand](std::size_t sum, const T * r) { return sum + demand(*r); }
+                    );
+                    
+                    if (constraint < capacity)
                     {
                         assign(urgent->first, *cluster); converged = false;
 
