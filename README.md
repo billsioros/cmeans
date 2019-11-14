@@ -4,7 +4,7 @@
 
 ## Example
 
-Firstly, we need to define what we are going to be clustering. **Vector2** implements a two dimensional point.
+Firstly, we need to define what we are going to be clustering. **Vector2** represents a two dimensional point.
 
 ```cpp
 class Vector2
@@ -48,7 +48,7 @@ public:
 };
 ```
 
-Let's now create some random points.
+Let's now create some random points and partition them into distinct groups.
 
 ```cpp
 auto frand = [](double min, double max)
@@ -62,11 +62,7 @@ std::vector<Vector2> points;
 
 for (std::size_t count = 0UL; count < NUMBER_OF_POINTS; count++)
     points.emplace_back(frand(MIN, MAX), frand(MIN, MAX));
-```
 
-Finally, let's partition them into distinct groups.
-
-```cpp
 auto cost = [](const Vector2& A, const Vector2& B)
 {
     const double xdiff = A.x() - B.x();
@@ -82,6 +78,8 @@ auto demand = [](const Vector2& v)
 
 auto clusters = Cluster<Vector2>::cmeans(points, CAPACITY, cost, demand);
 ```
+
+For further explanation on the **cost** and the **demand** arguements, please refer to the paper linked [below](#Acknowledgements].
 
 Accessing each cluster's internals can be achieved through the methods **centroid** and **elements**. In this example, we are using these methods in order to produce some output to pipe into our [visualization program](plot.py).
 
@@ -105,8 +103,6 @@ for (const auto& cluster : clusters)
     std::cout << "[" + points + "]" << std::endl;
 }
 ```
-
-For further explanation on the **cost** and the **demand** arguements, check [this](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.414.2123&rep=rep1&type=pdf).
 
 ```bash
 ./bin/cmeans 20 6 -50 +50 | python3 plot.py -s ./data/tiny.png
