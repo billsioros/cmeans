@@ -4,7 +4,7 @@
 
 ## Example
 
-Firstly, we need to define what we are going to be clustering. **Vector2** implements a two dimensional vector.
+Firstly, we need to define what we are going to be clustering. **Vector2** implements a two dimensional point.
 
 ```cpp
 class Vector2
@@ -64,7 +64,7 @@ for (std::size_t count = 0UL; count < NUMBER_OF_POINTS; count++)
     points.emplace_back(frand(MIN, MAX), frand(MIN, MAX));
 ```
 
-Finally, let's partition them into groups. The **euclidean distance** of the poitns is going to be used as the **cost** function and a function **returning 1** as the **demand** function, as we do not need anything more complex in this case. For further explanation, check [this](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.414.2123&rep=rep1&type=pdf).
+Finally, let's partition them into groups. For further explanation on the **cost** and the **demand** arguements, check [this](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.414.2123&rep=rep1&type=pdf).
 
 ```cpp
 auto cost = [](const Vector2& A, const Vector2& B)
