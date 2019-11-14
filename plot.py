@@ -46,5 +46,5 @@ plt.show()
 
 if args.save:
 
-    figure.savefig(f"{args.save}.png", format="png")
+    figure.savefig(f"{args.save}", format="png")
 
