@@ -81,7 +81,7 @@ auto clusters = Cluster<Vector2>::cmeans(points, CAPACITY, cost, demand);
 
 For further explanation on the **cost** and the **demand** arguements, please refer to the paper linked [below](#Acknowledgements).
 
-Accessing each cluster's internals can be achieved through the methods **centroid** and **elements**. In this example, we are using these methods in order to produce some output to pipe into our [visualization program](plot.py).
+Accessing each cluster's internals can be achieved through the methods **centroid** and **elements**.
 
 ```cpp
 for (const auto& cluster : clusters)
@@ -103,6 +103,8 @@ for (const auto& cluster : clusters)
     std::cout << "[" + points + "]" << std::endl;
 }
 ```
+
+Finally, let's pipe our program's output to our [visualization program](plot.py) and see what we get.
 
 ```bash
 ./bin/cmeans 20 6 -50 +50 | python3 plot.py -s ./data/tiny.png
