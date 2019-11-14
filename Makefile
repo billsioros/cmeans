@@ -1,22 +1,24 @@
 
-PATH_BIN = ./bin
+PATH_BIN  = ./bin
+PATH_DATA = ./data
 
 .PHONY: all
 all:
 	@echo "\n*** Compiling cmeans ***"
 	@echo "***"
-	mkdir -p ./bin
+	mkdir -p $(PATH_BIN)
 	g++ $(DEFLAGS) -g3 -W -I include/ -std=c++14 src/main.cpp src/vector2.cpp -o $(PATH_BIN)/cmeans
 	@echo "***"
 
 .PHONY: test
 test:
 	make all DEFLAGS="-D __RANDOM__"
-	./bin/cmeans 20 6 0 50 > ./test/tiny.dat
-	./bin/cmeans 50 13 0 50 > ./test/small.dat
-	./bin/cmeans 130 27 0 50 > ./test/medium.dat
-	./bin/cmeans 250 53 0 50 > ./test/large.dat
-	./bin/cmeans 500 109 0 50 > ./test/huge.dat
+	mkdir -p $(PATH_DATA)
+	$(PATH_BIN)/cmeans 20 6 -50 +50 | python3 plot.py -s $(PATH_DATA)/tiny.png
+	$(PATH_BIN)/cmeans 50 13 -50 +50 | python3 plot.py -s $(PATH_DATA)/small.png
+	$(PATH_BIN)/cmeans 130 27 -50 +50 | python3 plot.py -s $(PATH_DATA)/medium.png
+	$(PATH_BIN)/cmeans 250 53 -50 +50 | python3 plot.py -s $(PATH_DATA)/large.png
+	$(PATH_BIN)/cmeans 500 109 -50 +50 | python3 plot.py -s $(PATH_DATA)/huge.png
 
 .PHONY: debug
 debug:
@@ -33,5 +35,5 @@ clean:
 discard:
 	@echo "\n*** Removing test files ***"
 	@echo "***"
-	find . -name "*.dat" -delete
+	find . -name "*.png" -delete
 	@echo "***"

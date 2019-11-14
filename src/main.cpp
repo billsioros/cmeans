@@ -14,7 +14,7 @@ T str2num(const char *);
 int main(int argc, char * argv[])
 {
     std::size_t NUMBER_OF_POINTS = 10UL, CAPACITY = 6UL, SEED = 1534795927UL;
-    double MIN = 0.0, MAX = 50.0;
+    double MIN = -50.0, MAX = +50.0;
 
     if (argc >= 5)
     {
@@ -33,7 +33,7 @@ int main(int argc, char * argv[])
     {
         const double fraction = static_cast<double>(std::rand())
                               / static_cast<double>(RAND_MAX);
-                              
+
         return min + fraction * (max - min);
     };
 
@@ -58,18 +58,21 @@ int main(int argc, char * argv[])
 
     for (const auto& cluster : clusters)
     {
-        std::string xs, ys;
+        std::string points;
+
+        points += "(" + std::to_string(cluster.centroid().x());
+        points += ", ";
+        points += std::to_string(cluster.centroid().y()) + ")";
 
         for (const auto& element : cluster.elements())
         {
-            xs += std::to_string(element->x()) + " ";
-            ys += std::to_string(element->y()) + " ";
+            points += ", ";
+            points += "(" + std::to_string(element->x());
+            points += ", ";
+            points += std::to_string(element->y()) + ")";
         }
 
-        xs += std::to_string(cluster.centroid().x()) + " ";
-        ys += std::to_string(cluster.centroid().y()) + " ";
-
-        std::cout << xs << std::endl << ys << std::endl;
+        std::cout << "[" + points + "]" << std::endl;
     }
 
     return 0;
@@ -88,6 +91,6 @@ T str2num(const char * str)
     else
     {
         std::cerr << "<ERR>: Malformed arguement (" << str << ")" << std::endl;
-        std::exit(EXIT_FAILURE);                                
+        std::exit(EXIT_FAILURE);
     }
 }
