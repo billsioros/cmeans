@@ -64,7 +64,7 @@ for (std::size_t count = 0UL; count < NUMBER_OF_POINTS; count++)
     points.emplace_back(frand(MIN, MAX), frand(MIN, MAX));
 ```
 
-Finally, let's partition them into groups. For further explanation on the **cost** and the **demand** arguements, check [this](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.414.2123&rep=rep1&type=pdf).
+Finally, let's partition them into distinct groups.
 
 ```cpp
 auto cost = [](const Vector2& A, const Vector2& B)
@@ -86,6 +86,8 @@ auto clusters = Cluster<Vector2>::cmeans(points, CAPACITY, cost, demand);
 ```bash
 ./bin/cmeans 20 6 -50 +50 | python3 plot.py -s ./data/tiny.png
 ```
+
+For further explanation on the **cost** and the **demand** arguements, check [this](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.414.2123&rep=rep1&type=pdf).
 
 ![alt text](./data/tiny.png)
 
