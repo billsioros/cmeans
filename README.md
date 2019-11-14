@@ -1,14 +1,68 @@
 # Example
 
-* **Vector2** is a class representing a two dimensional vector.
-* **frand** is a function returning a random number in the range [MIN, MAX].
+Firstly, we need to define what we are going to be clustering. **Vector2** represents a two dimensional point.
 
 ```cpp
+class Vector2
+{
+    double _x, _y;
+
+public:
+
+    Vector2();
+    Vector2(double, double);
+    Vector2(const Vector2&);
+    Vector2(const Vector2&&) noexcept;
+
+    // Access:
+    double x() const { return _x; }
+    double y() const { return _y; }
+
+    // IO:
+    friend std::ostream& operator<<(std::ostream&, const Vector2&);
+    friend std::istream& operator>>(std::istream&, Vector2&);
+
+    // Operations:
+    Vector2& operator=(const Vector2&);
+    Vector2& operator=(const Vector2&&);
+
+    friend Vector2 operator+(const Vector2&, const Vector2&);
+    friend Vector2 operator-(const Vector2&, const Vector2&);
+    friend double  operator*(const Vector2&, const Vector2&);
+    friend Vector2 operator*(const Vector2&, double);
+    friend Vector2 operator/(const Vector2&, double);
+
+    Vector2& operator+=(const Vector2&);
+    Vector2& operator-=(const Vector2&);
+    Vector2& operator*=(double);
+    Vector2& operator/=(double);
+
+    friend bool operator< (const Vector2&, const Vector2&);
+    friend bool operator> (const Vector2&, const Vector2&);
+    friend bool operator==(const Vector2&, const Vector2&);
+    friend bool operator!=(const Vector2&, const Vector2&);
+};
+```
+
+Let's now create some random points.
+
+```cpp
+auto frand = [](double min, double max)
+{
+    const double fraction = static_cast<double>(std::rand()) / static_cast<double>(RAND_MAX);
+
+    return min + fraction * (max - min);
+};
+
 std::vector<Vector2> points;
 
 for (std::size_t count = 0UL; count < NUMBER_OF_POINTS; count++)
     points.emplace_back(frand(MIN, MAX), frand(MIN, MAX));
+```
 
+Finally, let's partition them. The Euclidean Distance is going to be used as the cost function. The demand of each point is going be 1, the point.
+
+```cpp
 auto cost = [](const Vector2& A, const Vector2& B)
 {
     const double xdiff = A.x() - B.x();
