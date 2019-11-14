@@ -1,4 +1,4 @@
-# cmeans - Improved K-Means Algorithm for the Capacitated Clustering Problem
+# Capacitated Clustering K-Means
 
 ## Example
 
