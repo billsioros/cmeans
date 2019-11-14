@@ -1,6 +1,4 @@
-# Capacitated Clustering K-Means
-
-## Example
+# Example
 
 * **Vector2** is a class representing a two dimensional vector.
 * **frand** is a function returning a random number in the range [MIN, MAX].
@@ -57,7 +55,7 @@ auto clusters = Cluster<Vector2>::cmeans(points, CAPACITY, cost, demand);
 
 ![alt text](./data/huge.png)
 
-## References
+# Paper
 
 [Improved K-Means Algorithm for the Capacitated Clustering Problem](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.414.2123&rep=rep1&type=pdf)
 
