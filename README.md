@@ -1,8 +1,6 @@
-# CMeans - Improved K-Means Algorithm for the Capacitated Clustering Problem
+# cmeans - Improved K-Means Algorithm for the Capacitated Clustering Problem
 
 ## Example
-
-In the following example:
 
 * **Vector2** is a class representing a two dimensional vector.
 * **frand** is a function returning a random number in the range [MIN, MAX].
