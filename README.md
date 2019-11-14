@@ -1,4 +1,8 @@
-# Example
+# cmeans
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## Example
 
 Firstly, we need to define what we are going to be clustering. **Vector2** implements a two dimensional vector.
 
@@ -109,7 +113,7 @@ auto clusters = Cluster<Vector2>::cmeans(points, CAPACITY, cost, demand);
 
 ![alt text](./data/huge.png)
 
-# References
+## References
 
 [Improved K-Means Algorithm for the Capacitated Clustering Problem](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.414.2123&rep=rep1&type=pdf)
 
