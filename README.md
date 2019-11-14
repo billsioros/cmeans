@@ -83,11 +83,34 @@ auto demand = [](const Vector2& v)
 auto clusters = Cluster<Vector2>::cmeans(points, CAPACITY, cost, demand);
 ```
 
-```bash
-./bin/cmeans 20 6 -50 +50 | python3 plot.py -s ./data/tiny.png
+Accessing each cluster's internals can be achieved through the methods **centroid** and **elements**. In this example, we are using these methods in order to produce some output to pipe into our [visualization program](plot.py).
+
+```cpp
+for (const auto& cluster : clusters)
+{
+    std::string points;
+
+    points += "(" + std::to_string(cluster.centroid().x());
+    points += ", ";
+    points += std::to_string(cluster.centroid().y()) + ")";
+
+    for (const auto& element : cluster.elements())
+    {
+        points += ", ";
+        points += "(" + std::to_string(element->x());
+        points += ", ";
+        points += std::to_string(element->y()) + ")";
+    }
+
+    std::cout << "[" + points + "]" << std::endl;
+}
 ```
 
 For further explanation on the **cost** and the **demand** arguements, check [this](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.414.2123&rep=rep1&type=pdf).
+
+```bash
+./bin/cmeans 20 6 -50 +50 | python3 plot.py -s ./data/tiny.png
+```
 
 ![alt text](./data/tiny.png)
 
@@ -115,7 +138,7 @@ For further explanation on the **cost** and the **demand** arguements, check [th
 
 ![alt text](./data/huge.png)
 
-## References
+## Acknowledgements
 
 [Improved K-Means Algorithm for the Capacitated Clustering Problem](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.414.2123&rep=rep1&type=pdf)
 
