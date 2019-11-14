@@ -43,18 +43,20 @@ int main(int argc, char * argv[])
     for (std::size_t count = 0UL; count < NUMBER_OF_POINTS; count++)
         points.emplace_back(frand(MIN, MAX), frand(MIN, MAX));
 
-    std::vector<Cluster<Vector2>> clusters = Cluster<Vector2>::cmeans(
-        points,
-        CAPACITY,
-        [](const Vector2& A, const Vector2& B)
-        {
-            const double xdiff = A.x() - B.x();
-            const double ydiff = A.y() - B.y();
+    auto cost = [](const Vector2& A, const Vector2& B)
+    {
+        const double xdiff = A.x() - B.x();
+        const double ydiff = A.y() - B.y();
 
-            return xdiff * xdiff + ydiff * ydiff;
-        },
-        [](const Vector2& v) { return 1UL; }
-    );
+        return xdiff * xdiff + ydiff * ydiff;
+    };
+
+    auto demand = [](const Vector2& v)
+    {
+        return 1UL;
+    };
+
+    auto clusters = Cluster<Vector2>::cmeans(points, CAPACITY, cost, demand);
 
     for (const auto& cluster : clusters)
     {
