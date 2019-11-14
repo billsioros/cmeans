@@ -79,7 +79,7 @@ auto demand = [](const Vector2& v)
 auto clusters = Cluster<Vector2>::cmeans(points, CAPACITY, cost, demand);
 ```
 
-For further explanation on the **cost** and the **demand** arguements, please refer to the paper linked [below](#Acknowledgements].
+For further explanation on the **cost** and the **demand** arguements, please refer to the paper linked [below](#Acknowledgements).
 
 Accessing each cluster's internals can be achieved through the methods **centroid** and **elements**. In this example, we are using these methods in order to produce some output to pipe into our [visualization program](plot.py).
 
