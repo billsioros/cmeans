@@ -79,7 +79,7 @@ auto demand = [](const Vector2& v)
 auto clusters = Cluster<Vector2>::cmeans(points, CAPACITY, cost, demand);
 ```
 
-For further explanation on the **cost** and the **demand** arguements, please refer to the paper linked [below](#Acknowledgements).
+For further explanation on the **cost** and **demand** arguements, please refer to the paper linked [below](#Acknowledgements).
 
 Accessing each cluster's internals can be achieved through the methods **centroid** and **elements**.
 
@@ -104,7 +104,7 @@ for (const auto& cluster : clusters)
 }
 ```
 
-Finally, let's pipe our program's output to our [visualization program](plot.py) and see what we get.
+Let's now [visualize](plot.py) our results.
 
 ```bash
 ./bin/cmeans 20 6 -50 +50 | python3 plot.py -s ./data/tiny.png
