@@ -4,7 +4,7 @@
 
 ## Example
 
-Firstly, we need to define what we are going to be clustering. **Vector2** represents a two dimensional point.
+We firstly define a class named **Vector2** representing a two dimensional point.
 
 ```cpp
 class Vector2
