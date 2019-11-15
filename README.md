@@ -110,7 +110,7 @@ Let's now [visualize](plot.py) our results.
 ./bin/cmeans 20 6 -50 +50 | python3 plot.py -s ./data/tiny.png
 ```
 
-<div style="text-align:center"><img src="./data/tiny.png"/></div>
+![alt text](./data/tiny.png)
 
 ```bash
 ./bin/cmeans 50 13 -50 +50 | python3 plot.py -s ./data/small.png
