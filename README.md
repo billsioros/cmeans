@@ -1,3 +1,13 @@
+#container {
+    height:100px;
+    line-height:100px;
+}
+
+#container img {
+    vertical-align:middle;
+    max-height:100%;
+}
+
 # cmeans
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -110,7 +120,7 @@ Let's now [visualize](plot.py) our results.
 ./bin/cmeans 20 6 -50 +50 | python3 plot.py -s ./data/tiny.png
 ```
 
-![alt text](./data/tiny.png)
+<div id="container"><img src="./data/tiny.png"/></div>
 
 ```bash
 ./bin/cmeans 50 13 -50 +50 | python3 plot.py -s ./data/small.png
