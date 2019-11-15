@@ -4,7 +4,7 @@
 
 ## Example
 
-We firstly define a class named **Vector2** representing a two dimensional point.
+We firstly define a class named [Vector2](src/vector2.cpp) representing a two dimensional point.
 
 ```cpp
 class Vector2
