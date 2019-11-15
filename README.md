@@ -51,7 +51,6 @@ public:
 Let's now create some random points and partition them into distinct groups.
 
 ```cpp
-// "frand": return a random floating point number in the range [MIN, MAX]
 auto frand = [](double min, double max)
 {
     const double fraction = static_cast<double>(std::rand()) / static_cast<double>(RAND_MAX);
